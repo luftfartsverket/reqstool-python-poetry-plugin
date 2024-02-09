@@ -1,0 +1,49 @@
+== Usage
+
+=== pyproject.toml
+
+==== Paths
+
+The plugin gets the paths where it will look for decorated code from ("." is filtered out):
+
+```
+[tool.pytest.ini_options]
+pythonpath = [".", "src", "tests"]
+```
+
+So in this example all files in "src" and "tests", including subfolders, will be processed.
+
+==== Poetry
+
+This will be added when running `poetry add reqstool-python-poetry-plugin`
+
+```
+[tool.poetry.dependencies]
+reqstool-python-poetry-plugin = "<version>"
+```
+
+=== Decorators
+
+Used to decorate your code as seen in the examples below, the decorator processing that runs during the build process collects data from the decorated code.
+
+Import decorators:
+
+```
+from reqstool_python_decorators.decorators.decorators import Requirements, SVCs
+```
+
+Example usage of the decorators:
+
+```
+@Requirements(REQ_111, REQ_222)
+def somefunction():
+```
+
+```
+@SVCs(SVC_111, SVC_222)
+def test_somefunction():
+```
+
+=== Poetry build
+
+When running `$poetry build` or `$poetry install` the plugin will run the `activate` function located inside `DecoratorsPlugin`, calling functions from the `reqstool-decorators` package and generate a yaml file in the `dist` folder containing formatted data on all decorated code found.
