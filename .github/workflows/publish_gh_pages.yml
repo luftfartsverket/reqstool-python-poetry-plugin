@@ -1,6 +1,6 @@
 name: Publish to GitHub Pages
 on:
-  workflow_dispatch:  
+  workflow_dispatch:
   release:
     types: [created]
   push:
@@ -16,7 +16,7 @@ permissions:
   pages: write
   id-token: write
 jobs:
-  build:
+  publish_gh_pages:
     runs-on: ubuntu-latest
     environment:
       name: github-pages

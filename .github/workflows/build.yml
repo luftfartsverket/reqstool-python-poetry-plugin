@@ -27,9 +27,9 @@ jobs:
         with:
           python-version: "3.10"
       - name: Install dependencies
-        run: pip install poetry pytest reqstool-python-decorators
+        run: pip install poetry pytest reqstool-python-decorators pytest-cov
       - name: Run unit and integrations tests
-        run: poetry run pytest tests
+        run: poetry run pytest --junitxml=build/junit.xml --cov --cov-report=xml:build/coverage.xml tests
       - name: Build project
         run: poetry build
       # Upload artifacts for later use
