@@ -1,0 +1,40 @@
+name: Build PyPI
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  linting:
+    name: Reuse linting job
+    uses: ./.github/workflows/lint.yml
+
+  build:
+    needs: linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 #full history
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: pip install poetry pytest reqstool-python-decorators pytest-cov
+      - name: Run unit and integrations tests
+        run: poetry run pytest --junitxml=build/junit.xml --cov --cov-report=xml:build/coverage.xml tests
+      - name: Build project
+        run: poetry build
+      # Upload artifacts for later use
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/

@@ -1,0 +1,59 @@
+[build-system]
+build-backend = 'poetry_dynamic_versioning.backend'
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+
+
+[tool.poetry]
+name = "reqstool-python-poetry-plugin"
+version = "0.0.0"
+description = "Reqstool Python Poetry Plugin"
+authors = ["LFV SYSDEV <sysdev@lfv.com>"]
+license = "MIT License"
+readme = "README.md"
+repository = "https://github.com/Luftfartsverket/reqstool-python-poetry-plugin.git"
+homepage = "https://github.com/Luftfartsverket/reqstool-python-poetry-plugin.git"
+documentation = "https://github.com/Luftfartsverket/reqstool-python-poetry-plugin.git"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+]
+
+[project.scripts]
+# section needed for poetry convertion
+
+[tool.poetry.dependencies]
+python = "^3.10"
+poetry = "^1.7.1"
+reqstool-python-decorators = "^0.1.dev6" #Change later when proper release is made. 
+
+[tool.poetry.group.dev.dependencies]
+black = { version = "24.1.1" }
+flake8 = { version = "7.0.0" }
+flake8-pyproject = { version = "1.2.3" }
+pytest = { version = "8.0.0" }
+pytest-cov = { version = "4.1.0" }
+
+[tool.poetry.plugins."poetry.plugin"]
+reqstool = "reqstool_python_poetry_plugin.plugin:DecoratorsPlugin"
+
+[tool.pytest.ini_options]
+addopts = ["-s", "--import-mode=importlib"]
+pythonpath = [".", "src", "tests"]
+testpaths = ["tests/unit"]
+
+[tool.black]
+line-length = 120
+target-version = ['py310']
+
+[tool.flake8]
+ignore = ["W503"]
+max-line-length = 120
+max-complexity = 10
+
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
