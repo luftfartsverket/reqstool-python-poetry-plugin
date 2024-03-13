@@ -25,8 +25,8 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-poetry = "^1.7.1"
-reqstool-python-decorators = "^0.0.1"
+poetry = "1.7.1"
+reqstool-python-decorators = "0.0.1"
 
 [tool.poetry.group.dev.dependencies]
 black = { version = "24.2.0" }
