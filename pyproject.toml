@@ -29,7 +29,7 @@ poetry = "^1.7.1"
 reqstool-python-decorators = "0.0.3" #Change later when proper release is made. 
 
 [tool.poetry.group.dev.dependencies]
-black = { version = "24.2.0" }
+black = { version = "24.3.0" }
 flake8 = { version = "7.0.0" }
 flake8-pyproject = { version = "1.2.3" }
 pytest = { version = "8.1.1" }
