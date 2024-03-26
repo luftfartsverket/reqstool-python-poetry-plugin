@@ -46,4 +46,4 @@ def test_somefunction():
 
 === Poetry build
 
-When running `$poetry build` or `$poetry install` the plugin will run the `activate` function located inside `DecoratorsPlugin`, calling functions from the `reqstool-decorators` package and generate a yaml file in the `dist` folder containing formatted data on all decorated code found.
+When running `$poetry build` or `$poetry install` the plugin will run the `activate` function located inside `DecoratorsPlugin`, calling functions from the `reqstool-python-decorators` package and generate a yaml file in the `build` folder containing formatted data on all decorated code found.
