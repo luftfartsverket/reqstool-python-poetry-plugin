@@ -1,5 +1,5 @@
 [build-system]
-build-backend = 'poetry_dynamic_versioning.backend'
+build-backend = "poetry_dynamic_versioning.backend"
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
 
 
@@ -27,6 +27,7 @@ classifiers = [
 python = "^3.10"
 poetry = "1.7.1"
 reqstool-python-decorators = "0.0.4"
+poetry-dynamic-versioning = "^1.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = { version = "24.3.0" }
