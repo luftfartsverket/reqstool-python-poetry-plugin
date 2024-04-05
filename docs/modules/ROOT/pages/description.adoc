@@ -2,4 +2,4 @@
 
 This provides a generic plugin for Poetry that runs during the build process.
 
-What the plugin does is collect decorated code, formatting it and writing it to a yaml file saved to the `build` folder, utilizing the `reqstool-python-decorators` package for the processing.
+The plugin collects decorated code, formatting it and writing it to a annotations.yml file saved to the `build/reqstool/` folder, utilizing the `reqstool-python-decorators` package for the processing.

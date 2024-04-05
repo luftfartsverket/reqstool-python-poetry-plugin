@@ -30,5 +30,5 @@ pyproject.toml
 
 ```
 [tool.poetry.dependencies]
-reqstool-python-decorators = "<installed version>"
+reqstool-python-decorators = "<version>"
 ```
