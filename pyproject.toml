@@ -27,6 +27,7 @@ classifiers = [
 python = "^3.10"
 poetry = "1.7.1"
 reqstool-python-decorators = "0.0.4"
+poetry-dynamic-versioning = "^1.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = { version = "24.3.0" }
@@ -34,6 +35,9 @@ flake8 = { version = "7.0.0" }
 flake8-pyproject = { version = "1.2.3" }
 pytest = { version = "8.1.1" }
 pytest-cov = { version = "5.0.0" }
+
+[tool.poetry.group.build.dependencies]
+poetry-dynamic-versioning = { version = ">=1.2.0", markers = "python_version < '4'" }
 
 [tool.poetry.plugins."poetry.plugin"]
 reqstool = "reqstool_python_poetry_plugin.plugin:DecoratorsPlugin"
