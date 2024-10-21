@@ -56,5 +56,6 @@ max-complexity = 10
 
 [tool.poetry-dynamic-versioning]
 enable = true
-vcs = "git"
 style = "pep440"
+dirty = false
+format = "{base}.dev{distance}"
