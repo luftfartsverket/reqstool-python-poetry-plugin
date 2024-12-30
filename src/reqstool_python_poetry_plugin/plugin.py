@@ -7,13 +7,10 @@ import tarfile
 import tempfile
 from pathlib import Path
 from importlib.metadata import PackageNotFoundError, version
-from typing import Any
 
 from cleo.io.io import IO
 from poetry.plugins.plugin import Plugin
 from poetry.poetry import Poetry
-from poetry.core.masonry.builders.wheel import WheelBuilder
-from poetry.core.masonry.builders.sdist import SdistBuilder
 from reqstool_python_decorators.processors.decorator_processor import DecoratorProcessor
 from ruamel.yaml import YAML
 
@@ -51,17 +48,7 @@ class ReqstoolPlugin(Plugin):
         # filtered_pythonpaths: list[str] = [path for path in pythonpath_from_pyproject_toml if path != "."]
 
         self._create_annotations_file(poetry=poetry)
-        # self._append_to_sdist_tar_gz(cleo_io=self._cleo_io, poetry=self._poetry)
-
-    @property
-    def post_build_handlers(self):
-        return [self.handle_post_build]
-
-    def handle_post_build(self, builder: Any, **kwargs: dict[str, Any]) -> None:
-        if isinstance(builder, (WheelBuilder, SdistBuilder)):
-            self._cleo_io.write_line("APPENDING TO TAR.GZ")
-
-            self._append_to_sdist_tar_gz(cleo_io=self._cleo_io, poetry=self._poetry)
+        self._append_to_sdist_tar_gz(cleo_io=self._cleo_io, poetry=self._poetry)
 
     def _create_annotations_file(self, poetry: Poetry) -> None:
         """
