@@ -1,10 +1,6 @@
 # Copyright © LFV
 
-import gzip
-import io
 import os
-import tarfile
-import tempfile
 from pathlib import Path
 from importlib.metadata import PackageNotFoundError, version
 
@@ -41,14 +37,8 @@ class ReqstoolPlugin(Plugin):
         self._cleo_io = cleo_io
         cleo_io.write_line("INSIDE ACTIVATE IN POETRY-PLUGIN")
 
-        # pythonpath_from_pyproject_toml = (
-        #     poetry.pyproject.data.get("tool").get("pytest").get("ini_options").get("pythonpath")
-        # )
-
-        # filtered_pythonpaths: list[str] = [path for path in pythonpath_from_pyproject_toml if path != "."]
-
         self._create_annotations_file(poetry=poetry)
-        self._append_to_sdist_tar_gz(cleo_io=self._cleo_io, poetry=self._poetry)
+        self._generate_reqstool_config(cleo_io=self._cleo_io, poetry=self._poetry)
 
     def _create_annotations_file(self, poetry: Poetry) -> None:
         """
@@ -66,7 +56,7 @@ class ReqstoolPlugin(Plugin):
         decorator_processor = DecoratorProcessor()
         decorator_processor.process_decorated_data(path_to_python_files=sources, output_file=str(annotations_file))
 
-    def _append_to_sdist_tar_gz(self, cleo_io: IO, poetry: Poetry) -> None:
+    def _generate_reqstool_config(self, cleo_io: IO, poetry: Poetry) -> None:
         """
         Appends to sdist containing the annotations file and other necessary data.
         """
@@ -116,56 +106,19 @@ class ReqstoolPlugin(Plugin):
             )
 
         reqstool_yaml_data = {"language": "python", "build": "hatch", "resources": resources}
-
         yaml = YAML()
         yaml.default_flow_style = False
-        reqstool_yml_io = io.BytesIO()
-        reqstool_yml_io.write(f"{self.YAML_LANGUAGE_SERVER}\n".encode("utf-8"))
-        reqstool_yml_io.write(f"# version: {poetry.package.version}\n".encode("utf-8"))
 
-        cleo_io.write_line(f"[reqstool] reqstool config {reqstool_yaml_data}")
+        # Get the project root directory and create the output path
+        output_path = Path(str(poetry.package.root_dir)) / self.OUTPUT_SDIST_REQSTOOL_YML
 
-        yaml.dump(reqstool_yaml_data, reqstool_yml_io)
-        reqstool_yml_io.seek(0)
-        poetry.package.name
-        # Path to the existing tar.gz file (constructed from metadata)
-        original_tar_gz_file = os.path.join(
-            str(poetry.package.root_dir),
-            "dist",
-            f"{normalize_package_name(poetry.package.name)}-{poetry.package.version}.tar.gz",
-        )
+        # Write the file directly to the project root
+        with open(output_path, "w") as f:
+            f.write(f"{self.YAML_LANGUAGE_SERVER}\n")
+            f.write(f"# version: {poetry.package.version}\n")
+            yaml.dump(reqstool_yaml_data, f)
 
-        cleo_io.write_line(f"[reqstool] tarball: {original_tar_gz_file}")
-
-        # Step 1: Extract the original tar.gz file to a temporary directory
-        with tempfile.NamedTemporaryFile(delete=True) as temp_tar_file:
-
-            temp_tar_file = temp_tar_file.name  # Get the name of the temporary file
-
-            cleo_io.write_line(f"[reqstool] temporary tar file: {temp_tar_file}")
-
-            # Extract the original tar.gz file
-            with gzip.open(original_tar_gz_file, "rb") as f_in, open(temp_tar_file, "wb") as f_out:
-                f_out.write(f_in.read())
-
-            # Step 2: Open the extracted tar file and append the new file
-            with tarfile.open(temp_tar_file, "a") as archive:
-                file_info = tarfile.TarInfo(
-                    name=f"{normalize_package_name(poetry.package.name)}-"
-                    f"{poetry.package.version}/{self.OUTPUT_SDIST_REQSTOOL_YML}"
-                )
-                file_info.size = reqstool_yml_io.getbuffer().nbytes
-                archive.addfile(tarinfo=file_info, fileobj=reqstool_yml_io)
-
-            # Step 3: Recompress the updated tar file back into the original .tar.gz format
-            with open(temp_tar_file, "rb") as f_in, gzip.open(original_tar_gz_file, "wb") as f_out:
-                f_out.writelines(f_in)
-
-        dist_dir: Path = Path(str(poetry.package.root_dir))
-        cleo_io.write_line(
-            f"[reqstool] added {self.OUTPUT_SDIST_REQSTOOL_YML} to "
-            f"{os.path.relpath(original_tar_gz_file, dist_dir.parent)}"
-        )
+        cleo_io.write_line(f"[reqstool] Created {self.OUTPUT_SDIST_REQSTOOL_YML} in project root")
 
 
 def get_version() -> str:
