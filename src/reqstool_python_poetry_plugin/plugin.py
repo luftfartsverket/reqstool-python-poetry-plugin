@@ -16,7 +16,7 @@ class ReqstoolPlugin(Plugin):
     CONFIG_SOURCES = "sources"
     CONFIG_DATASET_DIRECTORY = "dataset_directory"
     CONFIG_OUTPUT_DIRECTORY = "output_directory"
-    CONFIG_TEST_RESULTS: str = "test_results"
+    CONFIG_TEST_RESULTS = "test_results"
 
     INPUT_FILE_REQUIREMENTS_YML: str = "requirements.yml"
     INPUT_FILE_SOFTWARE_VERIFICATION_CASES_YML: str = "software_verification_cases.yml"
@@ -70,9 +70,19 @@ class ReqstoolPlugin(Plugin):
             .get("reqstool", {})
             .get(self.CONFIG_OUTPUT_DIRECTORY, self.OUTPUT_DIR_REQSTOOL)
         )
-        test_result_patterns: list[str] = (
+        # test_result_patterns: list[str] = (
+        #     poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_TEST_RESULTS, [])
+        # )
+
+        test_results_config = (
             poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_TEST_RESULTS, [])
         )
+
+        # Convert string to list if it's a string
+        test_result_patterns: list[str] = (
+            [test_results_config] if isinstance(test_results_config, str) else test_results_config
+        )
+
         requirements_file: Path = Path(dataset_directory, self.INPUT_FILE_REQUIREMENTS_YML)
         svcs_file: Path = Path(dataset_directory, self.INPUT_FILE_SOFTWARE_VERIFICATION_CASES_YML)
         mvrs_file: Path = Path(dataset_directory, self.INPUT_FILE_MANUAL_VERIFICATION_RESULTS_YML)
@@ -105,7 +115,7 @@ class ReqstoolPlugin(Plugin):
                 f"[reqstool] added test_results to {self.OUTPUT_SDIST_REQSTOOL_YML}: {test_result_patterns}"
             )
 
-        reqstool_yaml_data = {"language": "python", "build": "hatch", "resources": resources}
+        reqstool_yaml_data = {"language": "python", "build": "poetry", "resources": resources}
         yaml = YAML()
         yaml.default_flow_style = False
 
