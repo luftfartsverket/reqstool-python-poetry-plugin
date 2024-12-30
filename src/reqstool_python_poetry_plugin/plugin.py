@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 from importlib.metadata import PackageNotFoundError, version
+from typing import Union
 
 from cleo.io.io import IO
 from poetry.plugins.plugin import Plugin
@@ -30,7 +31,7 @@ class ReqstoolPlugin(Plugin):
 
     ARCHIVE_OUTPUT_DIR_TEST_RESULTS: str = "test_results"
 
-    YAML_LANGUAGE_SERVER = "# yaml-language-server: $schema=https://raw.githubusercontent.com/Luftfartsverket/reqstool-client/main/src/reqstool/resources/schemas/v1/reqstool_index.schema.json\n"  # noqa: E501
+    YAML_LANGUAGE_SERVER = "# yaml-language-server: $schema=https://raw.githubusercontent.com/Luftfartsverket/reqstool-client/main/src/reqstool/resources/schemas/v1/reqstool_config.schema.json\n"  # noqa: E501
 
     def activate(self, poetry: Poetry, cleo_io: IO) -> None:
         self._poetry = poetry
@@ -70,17 +71,8 @@ class ReqstoolPlugin(Plugin):
             .get("reqstool", {})
             .get(self.CONFIG_OUTPUT_DIRECTORY, self.OUTPUT_DIR_REQSTOOL)
         )
-        # test_result_patterns: list[str] = (
-        #     poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_TEST_RESULTS, [])
-        # )
-
-        test_results_config = (
-            poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_TEST_RESULTS, [])
-        )
-
-        # Convert string to list if it's a string
         test_result_patterns: list[str] = (
-            [test_results_config] if isinstance(test_results_config, str) else test_results_config
+            poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_TEST_RESULTS, [])
         )
 
         requirements_file: Path = Path(dataset_directory, self.INPUT_FILE_REQUIREMENTS_YML)
@@ -88,7 +80,7 @@ class ReqstoolPlugin(Plugin):
         mvrs_file: Path = Path(dataset_directory, self.INPUT_FILE_MANUAL_VERIFICATION_RESULTS_YML)
         annotations_file: Path = Path(reqstool_output_directory, self.INPUT_FILE_ANNOTATIONS_YML)
 
-        resources: dict[str, str] = {}
+        resources: dict[str, Union[str, list[str]]] = {}
 
         if not os.path.exists(requirements_file):
             msg: str = f"[reqstool] missing mandatory {self.INPUT_FILE_REQUIREMENTS_YML}: {requirements_file}"
@@ -110,10 +102,13 @@ class ReqstoolPlugin(Plugin):
             cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_YML}: {annotations_file}")
 
         if test_result_patterns:
-            resources["test_results"] = test_result_patterns
-            cleo_io.write_line(
-                f"[reqstool] added test_results to {self.OUTPUT_SDIST_REQSTOOL_YML}: {test_result_patterns}"
-            )
+            patterns = [
+                str(pattern)
+                for pattern in (
+                    [test_result_patterns] if isinstance(test_result_patterns, str) else test_result_patterns
+                )
+            ]
+            resources["test_results"] = patterns  # Now this should work with the updated type hint
 
         reqstool_yaml_data = {"language": "python", "build": "poetry", "resources": resources}
         yaml = YAML()
@@ -121,6 +116,8 @@ class ReqstoolPlugin(Plugin):
 
         # Get the project root directory and create the output path
         output_path = Path(str(poetry.package.root_dir)) / self.OUTPUT_SDIST_REQSTOOL_YML
+
+        cleo_io.write_line(f"[reqstool] Final yaml data: {reqstool_yaml_data}")
 
         # Write the file directly to the project root
         with open(output_path, "w") as f:

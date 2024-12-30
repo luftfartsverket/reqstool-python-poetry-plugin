@@ -2,25 +2,29 @@
 
 === pyproject.toml
 
-==== Paths
+==== Configuration
 
-The plugin gets the paths where it will look for decorated code from ("." is filtered out):
+The plugin is configured in the `pyproject.toml` file.
 
-```
-[tool.pytest.ini_options]
-pythonpath = [".", "src", "tests"]
-```
+```toml
+[tool.reqstool]
+sources = ["src", "tests"]
+test_results = "build/**/junit.xml"
+dataset_directory = "docs/reqstool"
+output_directory = "build/reqstool"
 
-In this example all files in "src" and "tests", including subfolders, will be processed.
+This specifies where the plugin should be applied: `sources`, where test reports are located: `test_results`, where reqstool files are located: `dataset_directory` and output directory: `output_directory`.
 
 ==== Poetry
 
 This will be added when running `poetry add reqstool-python-poetry-plugin`
 
-```
+```toml
 [tool.poetry.dependencies]
 reqstool-python-poetry-plugin = "<version>"
 ```
+
+
 
 === Decorators
 
@@ -46,4 +50,6 @@ def test_somefunction():
 
 === Poetry build
 
-When running `$poetry build` or `$poetry install` the plugin will run the `activate` function located inside `DecoratorsPlugin` class, calling functions from the `reqstool-python-decorators` package and generate a annotations.yml file in the `build/reqstool/` folder containing formatted data on all decorated code found.
+When running `$poetry build` or `$poetry install` the plugin will run the `activate` function located inside `ReqstoolPlugin` class, calling functions from the `reqstool-python-decorators` package and generate a annotations.yml file in the `build/reqstool/` folder containing formatted data on all decorated code found.
+
+Additionaly it will generate a `reqstool_config.yml` in the root of the project.
