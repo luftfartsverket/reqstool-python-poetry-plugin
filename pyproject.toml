@@ -3,11 +3,11 @@ build-backend = "poetry_dynamic_versioning.backend"
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
 
 
-[tool.poetry]
+[project]
 name = "reqstool-python-poetry-plugin"
 version = "0.0.0"
 description = "Reqstool Python Poetry Plugin"
-authors = ["LFV SYSDEV <sysdev@lfv.com>"]
+authors = [{ name = "LFV SYSDEV", email = "<sysdev@lfv.com>" }]
 license = "MIT License"
 readme = "README.md"
 repository = "https://github.com/Luftfartsverket/reqstool-python-poetry-plugin.git"
@@ -20,14 +20,15 @@ classifiers = [
     "Development Status :: 4 - Beta",
 ]
 
-[project.scripts]
-# section needed for poetry convertion
+dependencies = [
+    "python>=3.10",
+    "poetry==2.0.0",
+    "reqstool-python-decorators==0.0.5",
+    "poetry-dynamic-versioning==1.5.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-poetry = "2.0.0"
-reqstool-python-decorators = "0.0.5"
-poetry-dynamic-versioning = "^1.2.0"
+[tool.poetry]
+requires-poetry = ">=2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = { version = "24.10.0" }
