@@ -199,7 +199,8 @@ class ReqstoolPlugin(ApplicationPlugin):
 
         if annotations_file.exists():
             resources["annotations"] = str(annotations_file)
-            # self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {annotations_file}")
+            # self._cleo_io.write_line(f"[reqstool] added to
+            # {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {annotations_file}")
 
         if test_result_patterns:
             resources["test_results"] = test_result_patterns
