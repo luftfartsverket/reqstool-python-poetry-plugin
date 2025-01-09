@@ -25,9 +25,9 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-poetry = "1.8.4"
+poetry = "1.8.5"
 reqstool-python-decorators = "0.0.5"
-poetry-dynamic-versioning = "^1.2.0"
+poetry-dynamic-versioning = "1.5.0"
 
 [tool.poetry.group.dev.dependencies]
 black = { version = "24.10.0" }
