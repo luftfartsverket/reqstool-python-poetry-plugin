@@ -76,7 +76,7 @@ class ReqstoolPlugin(ApplicationPlugin):
         if reqstool_config_file.exists():
             reqstool_config_file.unlink()
 
-        self._cleo_io.write_line("[reqstool] Cleaning up.")
+        self._cleo_io.write_line("[reqstool] Cleaning up")
 
     def _create_annotations_file(self) -> None:
         """
@@ -126,19 +126,19 @@ class ReqstoolPlugin(ApplicationPlugin):
             raise RuntimeError(msg)
 
         resources["requirements"] = str(requirements_file)
-        self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {requirements_file}")
+        # self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {requirements_file}")
 
         if svcs_file.exists():
             resources["software_verification_cases"] = str(svcs_file)
-            self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {svcs_file}")
+            # self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {svcs_file}")
 
         if mvrs_file.exists():
             resources["manual_verification_results"] = str(mvrs_file)
-            self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {mvrs_file}")
+            # self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {mvrs_file}")
 
         if annotations_file.exists():
             resources["annotations"] = str(annotations_file)
-            self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {annotations_file}")
+            # self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {annotations_file}")
 
         if test_result_patterns:
             patterns = [
@@ -153,7 +153,7 @@ class ReqstoolPlugin(ApplicationPlugin):
         yaml = YAML()
         yaml.default_flow_style = False
 
-        self._cleo_io.write_line(f"[reqstool] Final yaml data: {reqstool_yaml_data}")
+        # self._cleo_io.write_line(f"[reqstool] Final yaml data: {reqstool_yaml_data}")
 
         reqstool_config_file: Path = self.get_reqstool_config_file(self._poetry)
 
