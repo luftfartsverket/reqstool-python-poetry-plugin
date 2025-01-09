@@ -1,8 +1,8 @@
 # Copyright © LFV
 
 import os
-from pathlib import Path
 from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 from typing import Union
 
 from cleo.io.io import IO
@@ -36,7 +36,6 @@ class ReqstoolPlugin(Plugin):
     def activate(self, poetry: Poetry, cleo_io: IO) -> None:
         self._poetry = poetry
         self._cleo_io = cleo_io
-        cleo_io.write_line("INSIDE ACTIVATE IN POETRY-PLUGIN")
 
         self._create_annotations_file(poetry=poetry)
         self._generate_reqstool_config(cleo_io=self._cleo_io, poetry=self._poetry)
