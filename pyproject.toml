@@ -68,3 +68,9 @@ enable = true
 style = "pep440"
 dirty = false
 format = "{base}.dev{distance}"
+
+[tool.reqstool]
+sources = ["src", "tests"]
+test_results = "build/**/junit.xml"
+dataset_directory = "docs/reqstool"
+output_directory = "build/reqstool"
