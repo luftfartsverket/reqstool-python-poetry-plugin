@@ -3,7 +3,7 @@
 
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
-from typing import Union
+from typing import Dict, List, Union
 
 from cleo.events.console_command_event import ConsoleCommandEvent
 from cleo.events.console_events import COMMAND, TERMINATE
@@ -19,10 +19,10 @@ from ruamel.yaml import YAML
 
 class ReqstoolPlugin(ApplicationPlugin):
 
-    CONFIG_SOURCES = "sources"
-    CONFIG_DATASET_DIRECTORY = "dataset_directory"
-    CONFIG_OUTPUT_DIRECTORY = "output_directory"
-    CONFIG_TEST_RESULTS = "test_results"
+    CONFIG_TOML_SOURCES = "sources"
+    CONFIG_TOML_DATASET_DIRECTORY = "dataset_directory"
+    CONFIG_TOML_OUTPUT_DIRECTORY = "output_directory"
+    CONFIG_TOML_TEST_RESULTS = "test_results"
 
     INPUT_FILE_REQUIREMENTS_YML: str = "requirements.yml"
     INPUT_FILE_SOFTWARE_VERIFICATION_CASES_YML: str = "software_verification_cases.yml"
@@ -60,6 +60,7 @@ class ReqstoolPlugin(ApplicationPlugin):
     def _on_build_command(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
         # if build command
         if isinstance(event._command, BuildCommand):
+            # self._update_sdist_include()
             self._create_annotations_file()
             self._generate_reqstool_config()
             self._cleo_io.write_line("")
@@ -78,18 +79,75 @@ class ReqstoolPlugin(ApplicationPlugin):
 
         self._cleo_io.write_line("[reqstool] Cleaning up")
 
+    def _update_sdist_include(self) -> None:
+
+        self._cleo_io.write_line("[reqstool] SDIST INCLUDE")
+
+        # Access the 'tool.poetry' section, initializing it if necessary
+        tool_section = self._poetry.pyproject.data.get("tool", {})
+        poetry_section = tool_section.get("poetry", {})
+
+        # Retrieve the current 'include' list or initialize it
+        include_list: List[Dict[str, str]] = poetry_section.get("include", [])
+
+        include_list.append({"path": "reqstool_config.yml", "format": "sdist"})
+
+        include_list.append(
+            {
+                "format": "sdist",
+                "path": str(
+                    Path(
+                        self._poetry.pyproject.data.get("tool", {})
+                        .get("reqstool", {})
+                        .get(self.CONFIG_TOML_OUTPUT_DIRECTORY, self.OUTPUT_DIR_REQSTOOL),
+                        self.INPUT_FILE_ANNOTATIONS_YML,
+                    )
+                ),
+            }
+        )
+
+        include_list.append(
+            {
+                "format": "sdist",
+                "path": self._poetry.pyproject.data.get("tool", {})
+                .get("reqstool", {})
+                .get(self.CONFIG_TOML_DATASET_DIRECTORY, self.INPUT_DIR_DATASET),
+            }
+        )
+
+        test_result_patterns: List[str] = (
+            self._poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_TOML_TEST_RESULTS, [])
+        )
+
+        for test_result_pattern in test_result_patterns:
+            include_list.append({"format": "sdist", "path": test_result_pattern})
+
+        # Update the 'include' list in the 'poetry' section
+        poetry_section["include"] = include_list
+        tool_section["poetry"] = poetry_section
+        self._poetry.pyproject.data["tool"] = tool_section
+
+        print(f"self._poetry.pyproject.data[tool] {self._poetry.pyproject.data['tool']}")
+
+        # Save changes to pyproject.toml
+        self._poetry.pyproject.save()
+
+        self._cleo_io.write_line("[reqstool] Updated tool.poetry.include with reqstool_config.yml")
+
     def _create_annotations_file(self) -> None:
         """
         Generates the annotations.yml file by processing the reqstool decorators.
         """
         sources = (
-            self._poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_SOURCES, ["src", "tests"])
+            self._poetry.pyproject.data.get("tool", {})
+            .get("reqstool", {})
+            .get(self.CONFIG_TOML_SOURCES, ["src", "tests"])
         )
 
         reqstool_output_directory: Path = Path(
             self._poetry.pyproject.data.get("tool", {})
             .get("reqstool", {})
-            .get(self.CONFIG_OUTPUT_DIRECTORY, self.OUTPUT_DIR_REQSTOOL)
+            .get(self.CONFIG_TOML_OUTPUT_DIRECTORY, self.OUTPUT_DIR_REQSTOOL)
         )
         annotations_file: Path = Path(reqstool_output_directory, self.INPUT_FILE_ANNOTATIONS_YML)
 
@@ -103,16 +161,19 @@ class ReqstoolPlugin(ApplicationPlugin):
         dataset_directory: Path = Path(
             self._poetry.pyproject.data.get("tool", {})
             .get("reqstool", {})
-            .get(self.CONFIG_DATASET_DIRECTORY, self.INPUT_DIR_DATASET)
+            .get(self.CONFIG_TOML_DATASET_DIRECTORY, self.INPUT_DIR_DATASET)
         )
         reqstool_output_directory: Path = Path(
             self._poetry.pyproject.data.get("tool", {})
             .get("reqstool", {})
-            .get(self.CONFIG_OUTPUT_DIRECTORY, self.OUTPUT_DIR_REQSTOOL)
+            .get(self.CONFIG_TOML_OUTPUT_DIRECTORY, self.OUTPUT_DIR_REQSTOOL)
         )
-        test_result_patterns: list[str] = (
-            self._poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_TEST_RESULTS, [])
-        )
+        test_result_patterns: List[str] = [
+            str(test_result_pattern)
+            for test_result_pattern in self._poetry.pyproject.data.get("tool", {})
+            .get("poetry", {})
+            .get(self.CONFIG_TOML_TEST_RESULTS, [])
+        ]
 
         requirements_file: Path = Path(dataset_directory, self.INPUT_FILE_REQUIREMENTS_YML)
         svcs_file: Path = Path(dataset_directory, self.INPUT_FILE_SOFTWARE_VERIFICATION_CASES_YML)
@@ -141,13 +202,7 @@ class ReqstoolPlugin(ApplicationPlugin):
             # self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {annotations_file}")
 
         if test_result_patterns:
-            patterns = [
-                str(pattern)
-                for pattern in (
-                    [test_result_patterns] if isinstance(test_result_patterns, str) else test_result_patterns
-                )
-            ]
-            resources["test_results"] = patterns  # Now this should work with the updated type hint
+            resources["test_results"] = test_result_patterns
 
         reqstool_yaml_data = {"language": "python", "build": "poetry", "resources": resources}
         yaml = YAML()

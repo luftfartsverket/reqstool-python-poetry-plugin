@@ -22,10 +22,10 @@ classifiers = [
     "Development Status :: 4 - Beta",
 ]
 
-include = [
-    { path = "docs", format = "sdist" },
-    { path = "reqstool_config.yml", format = "sdist" },
-]
+# include = [
+#     { path = "docs", format = "sdist" },
+#     { path = "reqstool_config.yml", format = "sdist" },
+# ]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -42,6 +42,11 @@ pytest-cov = { version = "6.0.0" }
 
 [tool.poetry.plugins."poetry.application.plugin"]
 reqstool = "reqstool_python_poetry_plugin.plugin:ReqstoolPlugin"
+
+
+# prep for poetry 2.0
+# [tool.poetry.requires-plugins]
+# reqstool-python-poetry-plugin = ">=0.0.0"
 
 [tool.pytest.ini_options]
 addopts = [
@@ -76,6 +81,6 @@ format = "{base}.dev{distance}"
 
 [tool.reqstool]
 sources = ["src", "tests"]
-test_results = "build/**/junit.xml"
+test_results = ["build/**/junit.xml"]
 dataset_directory = "docs/reqstool"
 output_directory = "build/reqstool"
