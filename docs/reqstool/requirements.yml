@@ -7,21 +7,9 @@ metadata:
   url: https://github.com/Luftfartsverket/reqstool-python-poetry-plugin
 
 requirements:
-  - id: REQ_001
-    title: First requirement
+  - id: POETRY_PLUGIN_001
+    title: Support poetry build system for use with reqstool
     significance: shall
-    description: Some description of the requirement.
-    categories: [functional-suitability]
-    revision: 0.0.1
-  - id: REQ_002
-    title: Second requirement
-    significance: shall
-    description: Some description of the requirement.
-    categories: [functional-suitability]
-    revision: 0.0.1
-  - id: REQ_003
-    title: Third requirement
-    significance: shall
-    description: Some description of the requirement.
+    description: Support reqstool to be used with poetry, i.e. creating a sdist tarball with reqstool files.
     categories: [functional-suitability]
     revision: 0.0.1

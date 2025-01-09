@@ -14,7 +14,6 @@ This provides a generic plugin for Poetry that runs during the build process.
 The plugin collects decorated code, formatting it and writing it to a annotations.yml file saved to the `build/reqstool/` folder, utilizing the `reqstool-python-decorators` package for the processing.
 
 
-
 ## Installation
 
 ### Plugin
@@ -50,27 +49,22 @@ pyproject.toml
 reqstool-python-decorators = "<version>"
 ```
 
+### Configuration
+
+The plugin is configured in the `pyproject.toml` file.
+
+```toml
+[tool.reqstool]
+sources = ["src", "tests"]
+test_results = "build/**/junit.xml"
+dataset_directory = "docs/reqstool"
+output_directory = "build/reqstool"
+
+This specifies where the plugin should be applied: `sources`, where test reports are located: `test_results`, where reqstool files are located: `dataset_directory` and output directory: `output_directory`.
+
+
 ## Usage
 
-### pyproject.toml
-
-#### Paths
-
-The plugin gets the paths where it will look for decorated code from ("." is filtered out):
-```
-[tool.pytest.ini_options]
-pythonpath = [".", "src", "tests"]
-```
-
-In this example all files in "src" and "tests", including subfolders, will be processed.
-
-#### Poetry
-
-This will be added when running `poetry add reqstool-python-poetry-plugin`
-
-```
-[tool.poetry.dependencies]
-reqstool-python-poetry-plugin = "<version>"
 ```
 
 ### Decorators
