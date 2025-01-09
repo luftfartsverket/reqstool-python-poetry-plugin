@@ -33,7 +33,8 @@ jobs:
         with:
           version: 1.8.5
           virtualenvs-create: true
-          # virtualenvs-in-project: true
+      - name: Install poetry-dynamic-versioning
+        run: poetry self add "poetry-dynamic-versioning[plugin]"
       - name: Install dependencies
         run: poetry install --with dev
       - name: Run unit and integrations tests

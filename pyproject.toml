@@ -2,6 +2,9 @@
 build-backend = "poetry_dynamic_versioning.backend"
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
 
+[project]
+dynamic = ["version"]
+
 [tool.poetry]
 name = "reqstool-python-poetry-plugin"
 version = "0.0.0"
@@ -65,3 +68,9 @@ enable = true
 style = "pep440"
 dirty = false
 format = "{base}.dev{distance}"
+
+[tool.reqstool]
+sources = ["src", "tests"]
+test_results = "build/**/junit.xml"
+dataset_directory = "docs/reqstool"
+output_directory = "build/reqstool"

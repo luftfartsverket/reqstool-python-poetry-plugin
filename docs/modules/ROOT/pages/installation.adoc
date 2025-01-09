@@ -26,3 +26,16 @@ pyproject.toml
 [tool.poetry.dependencies]
 reqstool-python-decorators = "<version>"
 ```
+
+==== Configuration
+
+The plugin is configured in the `pyproject.toml` file.
+
+```toml
+[tool.reqstool]
+sources = ["src", "tests"]
+test_results = "build/**/junit.xml"
+dataset_directory = "docs/reqstool"
+output_directory = "build/reqstool"
+
+This specifies where the plugin should be applied: `sources`, where test reports are located: `test_results`, where reqstool files are located: `dataset_directory` and output directory: `output_directory`.
