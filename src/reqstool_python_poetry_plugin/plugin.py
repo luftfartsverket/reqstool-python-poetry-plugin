@@ -1,18 +1,23 @@
 # Copyright © LFV
 
-import os
+
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Union
 
+from cleo.events.console_command_event import ConsoleCommandEvent
+from cleo.events.console_events import COMMAND, TERMINATE
+from cleo.events.event_dispatcher import EventDispatcher
 from cleo.io.io import IO
-from poetry.plugins.plugin import Plugin
+from poetry.console.application import Application
+from poetry.console.commands.build import BuildCommand
+from poetry.plugins.application_plugin import ApplicationPlugin
 from poetry.poetry import Poetry
 from reqstool_python_decorators.processors.decorator_processor import DecoratorProcessor
 from ruamel.yaml import YAML
 
 
-class ReqstoolPlugin(Plugin):
+class ReqstoolPlugin(ApplicationPlugin):
 
     CONFIG_SOURCES = "sources"
     CONFIG_DATASET_DIRECTORY = "dataset_directory"
@@ -27,27 +32,62 @@ class ReqstoolPlugin(Plugin):
     INPUT_DIR_DATASET: str = "reqstool"
 
     OUTPUT_DIR_REQSTOOL: str = "build/reqstool"
-    OUTPUT_SDIST_REQSTOOL_YML: str = "reqstool_config.yml"
+    OUTPUT_SDIST_REQSTOOL_CONFIG_YML: str = "reqstool_config.yml"
 
     ARCHIVE_OUTPUT_DIR_TEST_RESULTS: str = "test_results"
 
     YAML_LANGUAGE_SERVER = "# yaml-language-server: $schema=https://raw.githubusercontent.com/Luftfartsverket/reqstool-client/main/src/reqstool/resources/schemas/v1/reqstool_config.schema.json\n"  # noqa: E501
 
-    def activate(self, poetry: Poetry, cleo_io: IO) -> None:
-        self._poetry = poetry
-        self._cleo_io = cleo_io
+    def activate(self, application: Application) -> None:
+        """
+        Activate the plugin and access the Poetry and IO objects.
+        """
 
-        self._create_annotations_file(poetry=poetry)
-        self._generate_reqstool_config(cleo_io=self._cleo_io, poetry=self._poetry)
+        # Access the Poetry object from the Application
+        self._poetry: Poetry = application.poetry
 
-    def _create_annotations_file(self, poetry: Poetry) -> None:
+        # Access IO from the Application
+        self._cleo_io: IO = application._io
+
+        self._cleo_io.write_line(f"[reqstool] plugin {ReqstoolPlugin.get_version()} loaded")
+
+        # Register an event listener for the command execution event
+        application.event_dispatcher.add_listener(COMMAND, self._on_build_command)
+
+        # Register an event listener for the command execution event
+        application.event_dispatcher.add_listener(TERMINATE, self._on_build_terminate)
+
+    def _on_build_command(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
+        # if build command
+        if isinstance(event._command, BuildCommand):
+            self._create_annotations_file()
+            self._generate_reqstool_config()
+            self._cleo_io.write_line("")
+
+    def _on_build_terminate(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
+        # if build command finished
+        if isinstance(event._command, BuildCommand):
+            self._cleo_io.write_line("")
+            self._cleanup_post_build()
+
+    def _cleanup_post_build(self) -> None:
+        reqstool_config_file: Path = self.get_reqstool_config_file(self._poetry)
+
+        if reqstool_config_file.exists():
+            reqstool_config_file.unlink()
+
+        self._cleo_io.write_line("[reqstool] Cleaning up.")
+
+    def _create_annotations_file(self) -> None:
         """
         Generates the annotations.yml file by processing the reqstool decorators.
         """
-        sources = poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_SOURCES, ["src", "tests"])
+        sources = (
+            self._poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_SOURCES, ["src", "tests"])
+        )
 
         reqstool_output_directory: Path = Path(
-            poetry.pyproject.data.get("tool", {})
+            self._poetry.pyproject.data.get("tool", {})
             .get("reqstool", {})
             .get(self.CONFIG_OUTPUT_DIRECTORY, self.OUTPUT_DIR_REQSTOOL)
         )
@@ -56,22 +96,22 @@ class ReqstoolPlugin(Plugin):
         decorator_processor = DecoratorProcessor()
         decorator_processor.process_decorated_data(path_to_python_files=sources, output_file=str(annotations_file))
 
-    def _generate_reqstool_config(self, cleo_io: IO, poetry: Poetry) -> None:
+    def _generate_reqstool_config(self) -> None:
         """
         Appends to sdist containing the annotations file and other necessary data.
         """
         dataset_directory: Path = Path(
-            poetry.pyproject.data.get("tool", {})
+            self._poetry.pyproject.data.get("tool", {})
             .get("reqstool", {})
             .get(self.CONFIG_DATASET_DIRECTORY, self.INPUT_DIR_DATASET)
         )
         reqstool_output_directory: Path = Path(
-            poetry.pyproject.data.get("tool", {})
+            self._poetry.pyproject.data.get("tool", {})
             .get("reqstool", {})
             .get(self.CONFIG_OUTPUT_DIRECTORY, self.OUTPUT_DIR_REQSTOOL)
         )
         test_result_patterns: list[str] = (
-            poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_TEST_RESULTS, [])
+            self._poetry.pyproject.data.get("tool", {}).get("reqstool", {}).get(self.CONFIG_TEST_RESULTS, [])
         )
 
         requirements_file: Path = Path(dataset_directory, self.INPUT_FILE_REQUIREMENTS_YML)
@@ -81,24 +121,24 @@ class ReqstoolPlugin(Plugin):
 
         resources: dict[str, Union[str, list[str]]] = {}
 
-        if not os.path.exists(requirements_file):
+        if not requirements_file.exists():
             msg: str = f"[reqstool] missing mandatory {self.INPUT_FILE_REQUIREMENTS_YML}: {requirements_file}"
             raise RuntimeError(msg)
 
         resources["requirements"] = str(requirements_file)
-        cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_YML}: {requirements_file}")
+        self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {requirements_file}")
 
-        if os.path.exists(svcs_file):
+        if svcs_file.exists():
             resources["software_verification_cases"] = str(svcs_file)
-            cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_YML}: {svcs_file}")
+            self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {svcs_file}")
 
-        if os.path.exists(mvrs_file):
+        if mvrs_file.exists():
             resources["manual_verification_results"] = str(mvrs_file)
-            cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_YML}: {mvrs_file}")
+            self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {mvrs_file}")
 
-        if os.path.exists(annotations_file):
+        if annotations_file.exists():
             resources["annotations"] = str(annotations_file)
-            cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_YML}: {annotations_file}")
+            self._cleo_io.write_line(f"[reqstool] added to {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}: {annotations_file}")
 
         if test_result_patterns:
             patterns = [
@@ -113,27 +153,31 @@ class ReqstoolPlugin(Plugin):
         yaml = YAML()
         yaml.default_flow_style = False
 
-        # Get the project root directory and create the output path
-        output_path = Path(str(poetry.package.root_dir)) / self.OUTPUT_SDIST_REQSTOOL_YML
+        self._cleo_io.write_line(f"[reqstool] Final yaml data: {reqstool_yaml_data}")
 
-        cleo_io.write_line(f"[reqstool] Final yaml data: {reqstool_yaml_data}")
+        reqstool_config_file: Path = self.get_reqstool_config_file(self._poetry)
 
         # Write the file directly to the project root
-        with open(output_path, "w") as f:
+        with open(reqstool_config_file, "w") as f:
             f.write(f"{self.YAML_LANGUAGE_SERVER}\n")
-            f.write(f"# version: {poetry.package.version}\n")
+            f.write(f"# version: {self._poetry.package.version}\n")
             yaml.dump(reqstool_yaml_data, f)
 
-        cleo_io.write_line(f"[reqstool] Created {self.OUTPUT_SDIST_REQSTOOL_YML} in project root")
+        self._cleo_io.write_line(f"[reqstool] Generated {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML}")
 
+    def get_reqstool_config_file(self, poetry: Poetry) -> Path:
+        reqstool_config_file = Path(str(poetry.package.root_dir)) / self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML
 
-def get_version() -> str:
-    try:
-        ver: str = f"{version('reqstool-python-hatch-plugin')}"
-    except PackageNotFoundError:
-        ver: str = "package-not-found"
+        return reqstool_config_file
 
-    return ver
+    @staticmethod
+    def get_version() -> str:
+        try:
+            ver: str = f"{version('reqstool-python-poetry-plugin')}"
+        except PackageNotFoundError:
+            ver: str = "package-not-found"
+
+        return ver
 
 
 def normalize_package_name(name: str) -> str:
