@@ -28,8 +28,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+      - name: Install and configure Poetry (this should ideally be done from pyproject.toml but..)
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.5
+          virtualenvs-create: true
+          # virtualenvs-in-project: true
       - name: Install dependencies
-        run: pip install poetry poetry-dynamic-versioning pytest reqstool-python-decorators pytest-cov
+        run: poetry install --with dev
       - name: Run unit and integrations tests
         run: poetry run pytest --junitxml=build/junit.xml --cov --cov-report=xml:build/coverage.xml tests
       - name: Build project
