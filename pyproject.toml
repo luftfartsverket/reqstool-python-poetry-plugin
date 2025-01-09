@@ -2,7 +2,6 @@
 build-backend = "poetry_dynamic_versioning.backend"
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
 
-
 [tool.poetry]
 name = "reqstool-python-poetry-plugin"
 version = "0.0.0"
@@ -20,9 +19,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
 ]
 
-[project.scripts]
-# section needed for poetry convertion
-
 [tool.poetry.dependencies]
 python = "^3.10"
 poetry = "1.8.5"
@@ -37,12 +33,23 @@ pytest = { version = "8.3.4" }
 pytest-cov = { version = "6.0.0" }
 
 [tool.poetry.plugins."poetry.plugin"]
-reqstool = "reqstool_python_poetry_plugin.plugin:DecoratorsPlugin"
+reqstool = "reqstool_python_poetry_plugin.plugin:ReqstoolPlugin"
 
 [tool.pytest.ini_options]
-addopts = ["-s", "--import-mode=importlib"]
+addopts = [
+    "-rsxX",
+    "-s",
+    "--import-mode=importlib",
+    "--log-cli-level=DEBUG",
+    '-m not slow or not integration',
+]
 pythonpath = [".", "src", "tests"]
-testpaths = ["tests/unit"]
+testpaths = ["tests"]
+markers = [
+    "flaky: tests that can randomly fail through no change to the code",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: tests that require external resources",
+]
 
 [tool.black]
 line-length = 120
@@ -52,7 +59,6 @@ target-version = ['py310']
 ignore = ["W503"]
 max-line-length = 120
 max-complexity = 10
-
 
 [tool.poetry-dynamic-versioning]
 enable = true

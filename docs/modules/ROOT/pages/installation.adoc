@@ -10,12 +10,6 @@ The package name is `reqstool-python-poetry-plugin`.
 $poetry add reqstool-python-poetry-plugin 
 ```
 
-* pip install (unsure if working as intended):
-
-```
-$pip install reqstool-python-poetry-plugin
-```
-
 === Dependencies
 
 ==== reqstool-decorators

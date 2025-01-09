@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Luftfartsverket/reqstool-client/main/src/reqstool/resources/schemas/v1/requirements.schema.json
+
+metadata:
+  urn: reqstool-python-poetry-plugin
+  variant: microservice
+  title: Reqstool client
+  url: https://github.com/Luftfartsverket/reqstool-python-poetry-plugin
+
+requirements:
+  - id: REQ_001
+    title: First requirement
+    significance: shall
+    description: Some description of the requirement.
+    categories: [functional-suitability]
+    revision: 0.0.1
+  - id: REQ_002
+    title: Second requirement
+    significance: shall
+    description: Some description of the requirement.
+    categories: [functional-suitability]
+    revision: 0.0.1
+  - id: REQ_003
+    title: Third requirement
+    significance: shall
+    description: Some description of the requirement.
+    categories: [functional-suitability]
+    revision: 0.0.1
