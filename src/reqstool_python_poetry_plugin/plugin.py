@@ -11,6 +11,7 @@ from cleo.events.event_dispatcher import EventDispatcher
 from cleo.io.io import IO
 from poetry.console.application import Application
 from poetry.console.commands.build import BuildCommand
+from poetry.console.commands.install import InstallCommand
 from poetry.plugins.application_plugin import ApplicationPlugin
 from poetry.poetry import Poetry
 from reqstool_python_decorators.processors.decorator_processor import DecoratorProcessor
@@ -52,18 +53,22 @@ class ReqstoolPlugin(ApplicationPlugin):
         self._cleo_io.write_line(f"[reqstool] plugin {ReqstoolPlugin.get_version()} loaded")
 
         # Register an event listener for the command execution event
-        application.event_dispatcher.add_listener(COMMAND, self._on_build_command)
+        application.event_dispatcher.add_listener(COMMAND, self._on_poetry_command)
 
         # Register an event listener for the command execution event
         application.event_dispatcher.add_listener(TERMINATE, self._on_build_terminate)
 
-    def _on_build_command(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
+    def _on_poetry_command(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
         # if build command
         if isinstance(event._command, BuildCommand):
             # self._update_sdist_include()
             self._create_annotations_file()
             self._generate_reqstool_config()
             self._cleo_io.write_line("")
+        # if install command
+        if isinstance(event._command, InstallCommand):
+            self._update_sdist_include()
+            self._cleanup_pyproject_install_after_install()
 
     def _on_build_terminate(self, event: ConsoleCommandEvent, event_name: str, dispatcher: EventDispatcher) -> None:
         # if build command finished
@@ -71,6 +76,7 @@ class ReqstoolPlugin(ApplicationPlugin):
             self._cleo_io.write_line("")
             self._cleanup_post_build()
 
+    # clean up pyproject.toml, removing empty lines
     def _cleanup_post_build(self) -> None:
         reqstool_config_file: Path = self.get_reqstool_config_file(self._poetry)
 
@@ -78,6 +84,17 @@ class ReqstoolPlugin(ApplicationPlugin):
             reqstool_config_file.unlink()
 
         self._cleo_io.write_line("[reqstool] Cleaning up")
+
+    def _cleanup_pyproject_install_after_install(self) -> None:
+        pyproject_path: Path = self._poetry.file.path
+        with open(pyproject_path, "r") as f:
+            content = f.read()
+
+        import re
+        cleaned_content = re.sub(r"\n{3,}", "\n\n", content)
+
+        with open(pyproject_path, "w") as f:
+            f.write(cleaned_content)
 
     def _update_sdist_include(self) -> None:
 
@@ -90,11 +107,14 @@ class ReqstoolPlugin(ApplicationPlugin):
         # Retrieve the current 'include' list or initialize it
         include_list: List[Dict[str, str]] = poetry_section.get("include", [])
 
-        include_list.append({"path": "reqstool_config.yml", "format": "sdist"})
+        new_includes: List[Dict[str, str]] = []
 
-        include_list.append(
+        existing_paths: set = set()
+
+        new_includes.append({"path": "reqstool_config.yml", "format": "sdist"})
+
+        new_includes.append(
             {
-                "format": "sdist",
                 "path": str(
                     Path(
                         self._poetry.pyproject.data.get("tool", {})
@@ -103,15 +123,16 @@ class ReqstoolPlugin(ApplicationPlugin):
                         self.INPUT_FILE_ANNOTATIONS_YML,
                     )
                 ),
+                "format": "sdist",
             }
         )
 
-        include_list.append(
+        new_includes.append(
             {
-                "format": "sdist",
                 "path": self._poetry.pyproject.data.get("tool", {})
                 .get("reqstool", {})
                 .get(self.CONFIG_TOML_DATASET_DIRECTORY, self.INPUT_DIR_DATASET),
+                "format": "sdist",
             }
         )
 
@@ -120,7 +141,19 @@ class ReqstoolPlugin(ApplicationPlugin):
         )
 
         for test_result_pattern in test_result_patterns:
-            include_list.append({"format": "sdist", "path": test_result_pattern})
+            new_includes.append({"path": test_result_pattern, "format": "sdist"})
+
+        # get paths of existing includes
+        for item in include_list:
+            if isinstance(item, dict) and "path" in item:
+                existing_paths.add(item["path"])
+            elif isinstance(item, str):
+                existing_paths.add(item)
+
+        # append new includes if missing
+        for item in new_includes:
+            if item["path"] not in existing_paths:
+                include_list.append(item)
 
         # Update the 'include' list in the 'poetry' section
         poetry_section["include"] = include_list
