@@ -1,6 +1,6 @@
 # Copyright © LFV
 
-
+import re
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Dict, List, Union
@@ -90,7 +90,6 @@ class ReqstoolPlugin(ApplicationPlugin):
         with open(pyproject_path, "r") as f:
             content = f.read()
 
-        import re
         cleaned_content = re.sub(r"\n{3,}", "\n\n", content)
 
         with open(pyproject_path, "w") as f:
