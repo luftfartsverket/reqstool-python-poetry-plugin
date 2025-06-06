@@ -32,7 +32,7 @@ poetry-dynamic-versioning = "1.8.2"
 black = { version = "25.1.0" }
 flake8 = { version = "7.2.0" }
 flake8-pyproject = { version = "1.2.3" }
-pytest = { version = "8.3.5" }
+pytest = { version = "8.4.0" }
 pytest-cov = { version = "6.1.1" }
 
 [tool.poetry.plugins."poetry.plugin"]
