@@ -3,6 +3,7 @@ build-backend = "poetry_dynamic_versioning.backend"
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
 
 [project]
+name = "reqstool-python-poetry-plugin"
 dynamic = ["version"]
 
 [tool.poetry]
@@ -22,6 +23,11 @@ classifiers = [
     "Development Status :: 4 - Beta",
 ]
 
+# include = [
+#     { path = "docs", format = "sdist" },
+#     { path = "reqstool_config.yml", format = "sdist" },
+# ]
+
 [tool.poetry.dependencies]
 python = "^3.10"
 poetry = "1.8.5"
@@ -35,8 +41,13 @@ flake8-pyproject = { version = "1.2.3" }
 pytest = { version = "8.3.5" }
 pytest-cov = { version = "6.1.1" }
 
-[tool.poetry.plugins."poetry.plugin"]
+[tool.poetry.plugins."poetry.application.plugin"]
 reqstool = "reqstool_python_poetry_plugin.plugin:ReqstoolPlugin"
+
+
+# prep for poetry 2.0
+# [tool.poetry.requires-plugins]
+# reqstool-python-poetry-plugin = ">=0.0.0"
 
 [tool.pytest.ini_options]
 addopts = [
@@ -71,6 +82,6 @@ format = "{base}.dev{distance}"
 
 [tool.reqstool]
 sources = ["src", "tests"]
-test_results = "build/**/junit.xml"
+test_results = ["build/**/junit.xml"]
 dataset_directory = "docs/reqstool"
 output_directory = "build/reqstool"

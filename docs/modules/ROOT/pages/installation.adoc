@@ -34,7 +34,7 @@ The plugin is configured in the `pyproject.toml` file.
 ```toml
 [tool.reqstool]
 sources = ["src", "tests"]
-test_results = "build/**/junit.xml"
+test_results = ["build/**/junit.xml"]
 dataset_directory = "docs/reqstool"
 output_directory = "build/reqstool"
 
