@@ -33,7 +33,7 @@ black = { version = "25.9.0" }
 flake8 = { version = "7.3.0" }
 flake8-pyproject = { version = "1.2.3" }
 pytest = { version = "8.4.2" }
-pytest-cov = { version = "6.3.0" }
+pytest-cov = { version = "7.0.0" }
 
 [tool.poetry.plugins."poetry.plugin"]
 reqstool = "reqstool_python_poetry_plugin.plugin:ReqstoolPlugin"
