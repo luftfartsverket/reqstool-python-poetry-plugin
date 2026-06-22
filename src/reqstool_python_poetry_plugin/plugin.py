@@ -12,6 +12,7 @@ from poetry.console.application import Application
 from poetry.console.commands.build import BuildCommand
 from poetry.console.commands.install import InstallCommand
 from poetry.plugins.application_plugin import ApplicationPlugin
+from reqstool_python_decorators.decorators.decorators import Requirements
 from reqstool_python_decorators.processors.decorator_processor import DecoratorProcessor
 from ruamel.yaml import YAML
 
@@ -60,6 +61,7 @@ class ReqstoolPlugin(ApplicationPlugin):
         if isinstance(command, BuildCommand):
             self._cleanup_post_build()
 
+    @Requirements("POETRY_PLUGIN_004")
     def _cleanup_post_build(self) -> None:
         """Deletes reqstool_config.yml from project root after build."""
         config_file = self.get_reqstool_config_file(self._poetry)
@@ -67,6 +69,7 @@ class ReqstoolPlugin(ApplicationPlugin):
             config_file.unlink()
             self._cleo_io.write_line(f"[reqstool] Removed {self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML} from project root")
 
+    @Requirements("POETRY_PLUGIN_005")
     def _cleanup_pyproject_install_after_install(self) -> None:
         """Strips excess blank lines from pyproject.toml after install."""
         pyproject_path = Path(str(self._poetry.package.root_dir)) / "pyproject.toml"
@@ -78,6 +81,7 @@ class ReqstoolPlugin(ApplicationPlugin):
             pyproject_path.write_text(cleaned)
             self._cleo_io.write_line("[reqstool] Cleaned up excess blank lines in pyproject.toml")
 
+    @Requirements("POETRY_PLUGIN_003")
     def _update_sdist_include(self) -> None:
         """Adds reqstool files to [tool.poetry.include] in pyproject.toml."""
         pyproject_path = Path(str(self._poetry.package.root_dir)) / "pyproject.toml"
@@ -123,6 +127,7 @@ class ReqstoolPlugin(ApplicationPlugin):
     def get_reqstool_config_file(self, poetry) -> Path:
         return Path(str(poetry.package.root_dir)) / self.OUTPUT_SDIST_REQSTOOL_CONFIG_YML
 
+    @Requirements("POETRY_PLUGIN_002")
     def _create_annotations_file(self) -> None:
         """Generates the annotations.yml file by processing the reqstool decorators."""
         sources = (
@@ -141,6 +146,7 @@ class ReqstoolPlugin(ApplicationPlugin):
         decorator_processor = DecoratorProcessor()
         decorator_processor.process_decorated_data(path_to_python_files=sources, output_file=str(annotations_file))
 
+    @Requirements("POETRY_PLUGIN_001")
     def _generate_reqstool_config(self) -> None:
         """Generates reqstool_config.yml in the project root for inclusion in the sdist."""
         dataset_directory: Path = Path(

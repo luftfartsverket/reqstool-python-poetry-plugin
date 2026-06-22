@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from reqstool_python_decorators.decorators.decorators import SVCs
 
 FIXTURE_DIR = Path(__file__).parents[2] / "fixtures" / "test_project"
 
@@ -29,6 +30,7 @@ def _plugin_installed() -> bool:
 @pytest.mark.e2e
 @pytest.mark.skipif(not shutil.which("poetry"), reason="poetry not on PATH")
 @pytest.mark.skipif(not _plugin_installed(), reason="reqstool-python-poetry-plugin not installed in poetry")
+@SVCs("SVC_POETRY_PLUGIN_001", "SVC_POETRY_PLUGIN_002")
 def test_poetry_build_sdist_contains_reqstool_artifacts():
     """poetry build (sdist) triggers the reqstool plugin and bundles all artifacts."""
     with tempfile.TemporaryDirectory() as tmpdir:

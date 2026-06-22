@@ -72,7 +72,9 @@ pattern = "^(?P<base>\\d+\\.\\d+\\.\\d+.*)$"
 format-jinja = "{% if distance == 0 %}{{ base }}{% else %}{{ base }}.dev{{ distance }}{% endif %}"
 
 [tool.reqstool]
-sources = ["src", "tests"]
+# excludes tests/fixtures: it's a self-contained fixture project with its own
+# decorated REQ_001/SVC_001, unrelated to this plugin's own requirements
+sources = ["src", "tests/unit", "tests/integration", "tests/e2e"]
 test_results = ["build/**/junit.xml"]
 dataset_directory = "docs/reqstool"
 output_directory = "build/reqstool"
