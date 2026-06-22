@@ -3,13 +3,55 @@
 metadata:
   urn: reqstool-python-poetry-plugin
   variant: microservice
-  title: Reqstool client
+  title: Reqstool Python Poetry Plugin
   url: https://github.com/reqstool/reqstool-python-poetry-plugin
 
 requirements:
   - id: POETRY_PLUGIN_001
-    title: Support poetry build system for use with reqstool
+    title: Bundle reqstool dataset and annotations into the built sdist
     significance: shall
-    description: Support reqstool to be used with poetry, i.e. creating a sdist tarball with reqstool files.
+    description: >-
+      The plugin shall ensure that the project's reqstool dataset
+      (requirements.yml, software_verification_cases.yml,
+      manual_verification_results.yml, when present), the generated
+      annotations.yml, and a generated reqstool_config.yml are all present in
+      the sdist tarball produced by `poetry build`.
     categories: [functional-suitability]
-    revision: 0.0.1
+    revision: "0.1.0"
+  - id: POETRY_PLUGIN_002
+    title: Generate annotations.yml from reqstool decorators during build
+    significance: shall
+    description: >-
+      On `poetry build`, the plugin shall process the configured source
+      directories for `@Requirements`/`@SVCs` decorators and write the
+      result to annotations.yml in the configured output directory.
+    categories: [functional-suitability]
+    revision: "0.1.0"
+  - id: POETRY_PLUGIN_003
+    title: Register reqstool dataset and output directories for packaging
+    significance: shall
+    description: >-
+      On `poetry install`, the plugin shall add the generated
+      reqstool_config.yml and the configured dataset/output directories to
+      `[tool.poetry.include]` in pyproject.toml, so they are included when
+      the project is later built.
+    categories: [functional-suitability]
+    revision: "0.1.0"
+  - id: POETRY_PLUGIN_004
+    title: Remove generated reqstool_config.yml from the project root after build
+    significance: shall
+    description: >-
+      After `poetry build` terminates, the plugin shall delete the
+      reqstool_config.yml it generated in the project root, so it does not
+      linger as an untracked file in the working tree.
+    categories: [functional-suitability, maintainability]
+    revision: "0.1.0"
+  - id: POETRY_PLUGIN_005
+    title: Clean up excess blank lines introduced into pyproject.toml after install
+    significance: should
+    description: >-
+      After `poetry install`, the plugin shall collapse any run of three or
+      more consecutive blank lines in pyproject.toml (introduced by the
+      include-registration step) down to a single blank line.
+    categories: [maintainability]
+    revision: "0.1.0"

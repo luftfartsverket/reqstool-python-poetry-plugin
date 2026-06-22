@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/reqstool/reqstool-client/main/src/reqstool/resources/schemas/v1/software_verification_cases.schema.json
+
+cases:
+  - id: SVC_POETRY_PLUGIN_001
+    requirement_ids: ["POETRY_PLUGIN_001"]
+    title: "Verify the built sdist contains the reqstool dataset, annotations, and config"
+    verification: automated-test
+    revision: "0.1.0"
+
+  - id: SVC_POETRY_PLUGIN_002
+    requirement_ids: ["POETRY_PLUGIN_002"]
+    title: "Verify annotations.yml is generated from decorated source and bundled"
+    verification: automated-test
+    revision: "0.1.0"
+
+  - id: SVC_POETRY_PLUGIN_003
+    requirement_ids: ["POETRY_PLUGIN_003"]
+    title: "Verify pyproject.toml's [tool.poetry.include] is updated with reqstool paths"
+    verification: automated-test
+    revision: "0.1.0"
+
+  - id: SVC_POETRY_PLUGIN_004
+    requirement_ids: ["POETRY_PLUGIN_004"]
+    title: "Verify reqstool_config.yml is removed from the project root after build"
+    verification: automated-test
+    revision: "0.1.0"
+
+  - id: SVC_POETRY_PLUGIN_005
+    requirement_ids: ["POETRY_PLUGIN_005"]
+    title: "Verify excess blank lines are stripped from pyproject.toml after install"
+    verification: automated-test
+    revision: "0.1.0"
