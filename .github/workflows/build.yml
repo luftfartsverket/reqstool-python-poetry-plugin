@@ -66,6 +66,7 @@ jobs:
           fail-if-incomplete: "true"
       # Upload artifacts for later use
       - name: Upload Artifacts
+        if: matrix.reqstool-source == 'pypi'
         uses: actions/upload-artifact@v7
         with:
           name: dist
