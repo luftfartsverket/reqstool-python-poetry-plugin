@@ -1,6 +1,6 @@
 # Copyright © LFV
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import tomlkit
@@ -110,6 +110,21 @@ def test_cleanup_pyproject_is_a_noop_without_excess_blank_lines(tmp_path):
     plugin._cleanup_pyproject_install_after_install()
 
     assert pyproject_path.read_text() == original
+
+
+@SVCs("SVC_POETRY_PLUGIN_002")
+def test_create_annotations_file_passes_configured_sources_and_output_path(tmp_path):
+    plugin = _make_plugin(
+        tmp_path, reqstool_config={"sources": ["src", "tests/unit"], "output_directory": "build/reqstool"}
+    )
+
+    with patch("reqstool_python_poetry_plugin.plugin.DecoratorProcessor") as decorator_processor_cls:
+        plugin._create_annotations_file()
+
+    decorator_processor_cls.return_value.process_decorated_data.assert_called_once_with(
+        path_to_python_files=["src", "tests/unit"],
+        output_file="build/reqstool/annotations.yml",
+    )
 
 
 @SVCs("SVC_POETRY_PLUGIN_001")
