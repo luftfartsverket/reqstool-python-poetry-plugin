@@ -11,13 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v7.0.0
         with:
-          python-version: "3.13"
+          python-version: "3.13.15"
       - name: Install and configure Poetry (this should ideally be done from pyproject.toml but..)
-        uses: snok/install-poetry@a783c322200f0519c7926aa6faa857c4e23e9263 # v1
+        uses: snok/install-poetry@a783c322200f0519c7926aa6faa857c4e23e9263 # v1.4.2
         with:
           version: 1.8.5
           virtualenvs-create: true
